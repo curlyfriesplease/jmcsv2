@@ -28,32 +28,110 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   const animateQuoteIn = (text: string) => {
     if (!quoteRef.current) return;
 
-    // Split text into words for individual animation
+    const chars = '!<>-_\\/[]{}—=+*^?#________';
     const words = text.split(' ');
+
+    // Create word spans, each containing character spans
     quoteRef.current.innerHTML = words
-      .map((word) => `<span class="word">${word}</span>`)
+      .map((word, wordIndex) => {
+        const charSpans = word
+          .split('')
+          .map(
+            (char, charIndex) =>
+              `<span class="char" data-char="${char}" data-word="${wordIndex}" data-char-index="${charIndex}">${char}</span>`
+          )
+          .join('');
+        return `<span class="word" data-word-index="${wordIndex}">${charSpans}</span>`;
+      })
       .join(' ');
 
     const wordElements = quoteRef.current.querySelectorAll('.word');
 
-    // Initial state
+    // Set initial GSAP state
+    gsap.set(quoteRef.current, {
+      opacity: 0,
+      scale: 0.8,
+      rotationX: -90,
+    });
+
+    // Set initial word states
     gsap.set(wordElements, {
       opacity: 0,
-      scale: 0,
-      rotation: 45,
       y: 50,
+      rotationX: 90,
+      transformOrigin: 'center bottom',
+    });
+
+    // Animate container in
+    gsap.to(quoteRef.current, {
+      opacity: 1,
+      scale: 1,
+      rotationX: 0,
+      duration: 0.6,
+      ease: 'back.out(1.7)',
     });
 
     // Animate words in with stagger
-    gsap.to(wordElements, {
-      opacity: 1,
-      scale: 1,
-      rotation: 0,
-      y: 0,
-      duration: 0.8,
-      ease: 'back.out(1.7)',
-      stagger: 0.05,
-      onComplete: () => setIsAnimating(false),
+    wordElements.forEach((wordEl, wordIndex) => {
+      const wordChars = wordEl.querySelectorAll('.char');
+
+      // Initially scramble all characters in this word
+      wordChars.forEach((char) => {
+        char.textContent = chars[Math.floor(Math.random() * chars.length)];
+      });
+
+      // Animate word in after staggered delay
+      gsap.delayedCall(wordIndex * 0.3, () => {
+        // First animate the word container
+        gsap.to(wordEl, {
+          opacity: 1,
+          y: 0,
+          rotationX: 0,
+          duration: 0.6,
+          ease: 'back.out(1.7)',
+        });
+
+        // Then scramble and reveal characters within the word
+        wordChars.forEach((charEl, charIndex) => {
+          const finalChar = charEl.getAttribute('data-char');
+          let scrambleCount = 0;
+          const maxScrambles = 6 + Math.random() * 4;
+
+          gsap.delayedCall(charIndex * 0.05, () => {
+            const scrambleInterval = setInterval(() => {
+              if (scrambleCount < maxScrambles) {
+                charEl.textContent =
+                  chars[Math.floor(Math.random() * chars.length)];
+                scrambleCount++;
+              } else {
+                // Reveal final character
+                charEl.textContent = finalChar;
+                clearInterval(scrambleInterval);
+
+                // Add bounce effect when character is revealed
+                gsap.fromTo(
+                  charEl,
+                  { scale: 1.3, color: '#00ff88' },
+                  {
+                    scale: 1,
+                    color: '#ffffff',
+                    duration: 0.2,
+                    ease: 'back.out(2)',
+                  }
+                );
+
+                // Check if this is the last character to complete
+                if (
+                  wordIndex === wordElements.length - 1 &&
+                  charIndex === wordChars.length - 1
+                ) {
+                  setIsAnimating(false);
+                }
+              }
+            }, 40);
+          });
+        });
+      });
     });
   };
 
@@ -63,17 +141,32 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
       return;
     }
 
-    const wordElements = quoteRef.current.querySelectorAll('.word');
+    const charElements = quoteRef.current.querySelectorAll('.char');
 
-    gsap.to(wordElements, {
+    // First scramble all characters quickly
+    charElements.forEach((el) => {
+      if (el.textContent === ' ') return;
+      const chars = '!<>-_\\/[]{}—=+*^?#________';
+      el.textContent = chars[Math.floor(Math.random() * chars.length)];
+    });
+
+    // Then animate out
+    gsap.to(quoteRef.current, {
       opacity: 0,
-      scale: 1.5,
-      rotation: -45,
-      y: -50,
-      duration: 0.6,
+      scale: 0.6,
+      rotationX: 90,
+      duration: 0.8,
       ease: 'power4.in',
-      stagger: 0.02,
       onComplete: callback,
+    });
+
+    // Add individual character animations
+    gsap.to(charElements, {
+      scale: 0,
+      rotation: 180,
+      duration: 0.6,
+      ease: 'power2.in',
+      stagger: 0.01,
     });
   };
 
@@ -200,13 +293,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
               <p>Adjust your settings or restore default quotes to see more.</p>
             </div>
           )}
-
-          <div className="quote-stats">
-            <span>Remaining: {quotesManager.getRemainingCount()}</span>
-            <span>Seen: {quotesManager.getSeenCount()}</span>
-          </div>
         </div>
-
         {/* Jon face button */}
         <button
           ref={jonButtonRef}

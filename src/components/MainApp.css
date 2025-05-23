@@ -45,35 +45,27 @@
 
 .main-content {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 6rem 2rem 2rem;
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .quote-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   max-width: 900px;
-  width: 100%;
+  width: calc(100% - 4rem);
   text-align: center;
-  margin-bottom: 2rem;
+  z-index: 2;
 }
 
 .quote-text {
   font-size: 2.5rem;
   line-height: 1.4;
   color: #ffffff;
-  margin-bottom: 2rem;
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin: 0;
   text-align: center;
   font-weight: 400;
   letter-spacing: 0.5px;
@@ -82,7 +74,14 @@
 
 .quote-text .word {
   display: inline-block;
-  margin-right: 0.3em;
+  margin-right: 0.5em;
+  white-space: nowrap;
+}
+
+.quote-text .char {
+  display: inline-block;
+  font-weight: inherit;
+  transition: color 0.2s ease;
 }
 
 .no-quotes {
@@ -103,34 +102,19 @@
   line-height: 1.6;
 }
 
-.quote-stats {
-  display: flex;
-  gap: 2rem;
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: auto;
-}
-
-.quote-stats span {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
 .jon-face-button {
-  position: relative;
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
   width: 120px;
   height: 120px;
   border: none;
   background: transparent;
   cursor: pointer;
-  border-radius: 50%;
   padding: 0;
   transition: all 0.3s ease;
-  margin-top: auto;
-  margin-bottom: 2rem;
+  z-index: 1;
 }
 
 .jon-face-button:hover {
@@ -152,10 +136,11 @@
 .jon-face-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 50%;
   box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  background: transparent;
 }
 
 .jon-face-button:hover .jon-face-image {
@@ -180,11 +165,6 @@
     min-height: 150px;
   }
 
-  .quote-stats {
-    gap: 1rem;
-    font-size: 0.9rem;
-  }
-
   .jon-face-button {
     width: 100px;
     height: 100px;
@@ -195,12 +175,6 @@
   .quote-text {
     font-size: 1.6rem;
     min-height: 120px;
-  }
-
-  .quote-stats {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: center;
   }
 
   .jon-face-button {

@@ -136,6 +136,8 @@ class QuotesManager {
     // Clear seen quotes
     this.seenQuoteIds.clear();
     localStorage.removeItem('seen-quotes');
+    // Reset available quotes to all quotes
+    this.availableQuotes = [...this.allQuotes];
   }
 
   public getRemainingCount(): number {

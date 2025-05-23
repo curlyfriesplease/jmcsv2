@@ -23,10 +23,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleRestoreDefaults = () => {
     quotesManager.restoreAllQuotes();
-    onSettingsChange({
-      excludeV1Quotes: false,
-      removeNSFWQuotes: false,
-    });
+    onSettingsChange({ excludeV1Quotes: false, removeNSFWQuotes: false });
   };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
