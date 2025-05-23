@@ -52,3 +52,7 @@ export default tseslint.config({
   },
 })
 ```
+## Credits
+
+### Font
+Credit to 'The Little Character Font Set' for the font, listen to this excellent podcast episode for the story of its history [podcast link](https://www.hyperfixedpod.com/listen/hyperfixed/little-by-little)
