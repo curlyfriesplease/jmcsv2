@@ -1,13 +1,162 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import { quotesManager, type Quote } from '../utils/quotesManager';
+import type { Settings } from '../App';
 import './MainApp.css';
 
 interface MainAppProps {
   onOpenSettings: () => void;
+  settings: Settings;
 }
 
-const MainApp: React.FC<MainAppProps> = ({ onOpenSettings }) => {
+const jonFaces = [
+  '/src/assets/jonfaces/jonface1PNG.png',
+  '/src/assets/jonfaces/jonface2PNG.png',
+  '/src/assets/jonfaces/jonface3PNG.png',
+  '/src/assets/jonfaces/jonface4PNG.png',
+];
+
+const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
+  const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [currentJonFace, setCurrentJonFace] = useState(0);
+
+  const quoteRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const jonButtonRef = useRef<HTMLButtonElement>(null);
+
+  const animateQuoteIn = (text: string) => {
+    if (!quoteRef.current) return;
+
+    // Split text into words for individual animation
+    const words = text.split(' ');
+    quoteRef.current.innerHTML = words
+      .map((word) => `<span class="word">${word}</span>`)
+      .join(' ');
+
+    const wordElements = quoteRef.current.querySelectorAll('.word');
+
+    // Initial state
+    gsap.set(wordElements, {
+      opacity: 0,
+      scale: 0,
+      rotation: 45,
+      y: 50,
+    });
+
+    // Animate words in with stagger
+    gsap.to(wordElements, {
+      opacity: 1,
+      scale: 1,
+      rotation: 0,
+      y: 0,
+      duration: 0.8,
+      ease: 'back.out(1.7)',
+      stagger: 0.05,
+      onComplete: () => setIsAnimating(false),
+    });
+  };
+
+  const animateQuoteOut = (callback: () => void) => {
+    if (!quoteRef.current) {
+      callback();
+      return;
+    }
+
+    const wordElements = quoteRef.current.querySelectorAll('.word');
+
+    gsap.to(wordElements, {
+      opacity: 0,
+      scale: 1.5,
+      rotation: -45,
+      y: -50,
+      duration: 0.6,
+      ease: 'power4.in',
+      stagger: 0.02,
+      onComplete: callback,
+    });
+  };
+
+  const loadNextQuote = () => {
+    if (isAnimating) return;
+
+    setIsAnimating(true);
+
+    if (currentQuote) {
+      // Animate out current quote, then load new one
+      animateQuoteOut(() => {
+        const nextQuote = quotesManager.getRandomQuote();
+        setCurrentQuote(nextQuote);
+        if (nextQuote) {
+          setTimeout(() => animateQuoteIn(nextQuote.text), 100);
+        } else {
+          setIsAnimating(false);
+        }
+      });
+    } else {
+      // First load
+      const nextQuote = quotesManager.getRandomQuote();
+      setCurrentQuote(nextQuote);
+      if (nextQuote) {
+        setTimeout(() => animateQuoteIn(nextQuote.text), 500);
+      } else {
+        setIsAnimating(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Update available quotes when settings change
+    quotesManager.updateAvailableQuotes(settings);
+    loadNextQuote();
+  }, [settings]);
+
+  useEffect(() => {
+    // Initial entrance animation
+    if (containerRef.current) {
+      gsap.fromTo(
+        containerRef.current,
+        {
+          opacity: 0,
+          scale: 0.8,
+          rotationY: 180,
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          rotationY: 0,
+          duration: 1.2,
+          ease: 'back.out(1.7)',
+          delay: 0.3,
+        }
+      );
+    }
+  }, []);
+
+  const handleJonFaceClick = () => {
+    if (isAnimating) return;
+
+    // Animate button
+    if (jonButtonRef.current) {
+      gsap.to(jonButtonRef.current, {
+        scale: 0.8,
+        rotation: 360,
+        duration: 0.3,
+        ease: 'power2.out',
+        yoyo: true,
+        repeat: 1,
+      });
+    }
+
+    // Change to random jon face
+    setCurrentJonFace(Math.floor(Math.random() * jonFaces.length));
+
+    // Load next quote
+    loadNextQuote();
+  };
+
   return (
-    <div className="main-app fade-in">
+    <div ref={containerRef} className="main-app">
       {/* Settings button */}
       <button
         className="settings-button"
@@ -40,31 +189,37 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings }) => {
 
       {/* Main content */}
       <div className="main-content">
-        <header className="app-header">
-          <h1>Welcome to Your App</h1>
-          <p>Your modern React application is ready!</p>
-        </header>
+        <div className="quote-container">
+          {currentQuote ? (
+            <div ref={quoteRef} className="quote-text">
+              {currentQuote.text}
+            </div>
+          ) : (
+            <div className="no-quotes">
+              <h2>No more quotes available!</h2>
+              <p>Adjust your settings or restore default quotes to see more.</p>
+            </div>
+          )}
 
-        <main className="app-main">
-          <div className="feature-grid">
-            <div className="feature-card">
-              <h3>Beautiful Design</h3>
-              <p>Modern, sleek interface with smooth animations</p>
-            </div>
-            <div className="feature-card">
-              <h3>Responsive</h3>
-              <p>Works perfectly on all device sizes</p>
-            </div>
-            <div className="feature-card">
-              <h3>Customizable</h3>
-              <p>Extensive settings to personalize your experience</p>
-            </div>
-            <div className="feature-card">
-              <h3>Fast & Efficient</h3>
-              <p>Built with the latest React and Vite technologies</p>
-            </div>
+          <div className="quote-stats">
+            <span>Remaining: {quotesManager.getRemainingCount()}</span>
+            <span>Seen: {quotesManager.getSeenCount()}</span>
           </div>
-        </main>
+        </div>
+
+        {/* Jon face button */}
+        <button
+          ref={jonButtonRef}
+          className="jon-face-button"
+          onClick={handleJonFaceClick}
+          disabled={isAnimating || !currentQuote}
+        >
+          <img
+            src={jonFaces[currentJonFace]}
+            alt="Jon Face"
+            className="jon-face-image"
+          />
+        </button>
       </div>
     </div>
   );

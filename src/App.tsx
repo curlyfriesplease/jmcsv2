@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react';
-import BaseLayer from './components/BaseLayer';
-import SplashScreen from './components/SplashScreen';
-import MainApp from './components/MainApp';
-import SettingsModal from './components/SettingsModal';
+import BaseLayer from './components/BaseLayer.tsx';
+import SplashScreen from './components/SplashScreen.tsx';
+import MainApp from './components/MainApp.tsx';
+import SettingsModal from './components/SettingsModal.tsx';
 
 export interface Settings {
-  enableAnimations: boolean;
-  enableSound: boolean;
-  enableNotifications: boolean;
-  enableDarkMode: boolean;
-  enableAutoSave: boolean;
+  excludeV1Quotes: boolean;
+  removeNSFWQuotes: boolean;
 }
 
 function App() {
@@ -20,11 +17,8 @@ function App() {
     return savedSettings
       ? JSON.parse(savedSettings)
       : {
-          enableAnimations: true,
-          enableSound: true,
-          enableNotifications: false,
-          enableDarkMode: true,
-          enableAutoSave: true,
+          excludeV1Quotes: false,
+          removeNSFWQuotes: false,
         };
   });
 

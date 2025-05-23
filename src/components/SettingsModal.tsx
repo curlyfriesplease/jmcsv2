@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Settings } from '../App';
+import { quotesManager } from '../utils/quotesManager';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -17,6 +18,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     onSettingsChange({
       ...settings,
       [key]: !settings[key],
+    });
+  };
+
+  const handleRestoreDefaults = () => {
+    quotesManager.restoreAllQuotes();
+    onSettingsChange({
+      excludeV1Quotes: false,
+      removeNSFWQuotes: false,
     });
   };
 
@@ -56,91 +65,70 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
         <div className="settings-content">
           <div className="settings-section">
-            <h3>Display</h3>
+            <h3>Quote Filters</h3>
             <div className="setting-item">
-              <label htmlFor="animations">
+              <label htmlFor="excludeV1">
                 <input
                   type="checkbox"
-                  id="animations"
-                  checked={settings.enableAnimations}
-                  onChange={() => handleSettingToggle('enableAnimations')}
+                  id="excludeV1"
+                  checked={settings.excludeV1Quotes}
+                  onChange={() => handleSettingToggle('excludeV1Quotes')}
                 />
                 <span className="checkmark"></span>
-                Enable Animations
+                Exclude v1 quotes
               </label>
-              <p>Turn on/off smooth animations throughout the app</p>
+              <p>Hide questions from the original v1 question set</p>
             </div>
 
             <div className="setting-item">
-              <label htmlFor="darkmode">
+              <label htmlFor="removeNSFW">
                 <input
                   type="checkbox"
-                  id="darkmode"
-                  checked={settings.enableDarkMode}
-                  onChange={() => handleSettingToggle('enableDarkMode')}
+                  id="removeNSFW"
+                  checked={settings.removeNSFWQuotes}
+                  onChange={() => handleSettingToggle('removeNSFWQuotes')}
                 />
                 <span className="checkmark"></span>
-                Dark Mode
+                Remove NSFW questions
               </label>
-              <p>Use dark theme for better nighttime viewing</p>
-            </div>
-          </div>
-
-          <div className="settings-section">
-            <h3>Audio & Notifications</h3>
-            <div className="setting-item">
-              <label htmlFor="sound">
-                <input
-                  type="checkbox"
-                  id="sound"
-                  checked={settings.enableSound}
-                  onChange={() => handleSettingToggle('enableSound')}
-                />
-                <span className="checkmark"></span>
-                Enable Sound Effects
-              </label>
-              <p>Play sound effects for interactions</p>
-            </div>
-
-            <div className="setting-item">
-              <label htmlFor="notifications">
-                <input
-                  type="checkbox"
-                  id="notifications"
-                  checked={settings.enableNotifications}
-                  onChange={() => handleSettingToggle('enableNotifications')}
-                />
-                <span className="checkmark"></span>
-                Enable Notifications
-              </label>
-              <p>Receive app notifications and updates</p>
+              <p>Filter out questions that might be inappropriate</p>
             </div>
           </div>
 
           <div className="settings-section">
-            <h3>Data & Storage</h3>
-            <div className="setting-item">
-              <label htmlFor="autosave">
-                <input
-                  type="checkbox"
-                  id="autosave"
-                  checked={settings.enableAutoSave}
-                  onChange={() => handleSettingToggle('enableAutoSave')}
-                />
-                <span className="checkmark"></span>
-                Auto-save Data
-              </label>
-              <p>Automatically save your progress and settings</p>
+            <h3>Quote Stats</h3>
+            <div className="stats-grid">
+              <div className="stat-item">
+                <span className="stat-number">
+                  {quotesManager.getTotalCount()}
+                </span>
+                <span className="stat-label">Total quotes</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">
+                  {quotesManager.getSeenCount()}
+                </span>
+                <span className="stat-label">Seen quotes</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">
+                  {quotesManager.getRemainingCount()}
+                </span>
+                <span className="stat-label">Remaining</span>
+              </div>
             </div>
           </div>
         </div>
 
         <footer className="settings-footer">
-          <button className="settings-button secondary" onClick={onClose}>
-            Cancel
+          <button
+            className="settings-button secondary"
+            onClick={handleRestoreDefaults}
+          >
+            Restore Default Quotes
           </button>
           <button className="settings-button primary" onClick={onClose}>
-            Save Changes
+            Done
           </button>
         </footer>
       </div>
