@@ -67,7 +67,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
       opacity: 1,
       scale: 1,
       rotationX: 0,
-      duration: 0.6,
+      duration: 0.4,
       ease: 'back.out(1.7)',
     });
 
@@ -81,13 +81,13 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
       });
 
       // Animate word in after staggered delay
-      gsap.delayedCall(wordIndex * 0.3, () => {
+      gsap.delayedCall(wordIndex * 0.15, () => {
         // First animate the word container
         gsap.to(wordEl, {
           opacity: 1,
           y: 0,
           rotationX: 0,
-          duration: 0.6,
+          duration: 0.4,
           ease: 'back.out(1.7)',
         });
 
@@ -97,7 +97,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
           let scrambleCount = 0;
           const maxScrambles = 6 + Math.random() * 4;
 
-          gsap.delayedCall(charIndex * 0.05, () => {
+          gsap.delayedCall(charIndex * 0.03, () => {
             const scrambleInterval = setInterval(() => {
               if (scrambleCount < maxScrambles) {
                 charEl.textContent =
@@ -115,7 +115,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
                   {
                     scale: 1,
                     color: '#ffffff',
-                    duration: 0.2,
+                    duration: 0.15,
                     ease: 'back.out(2)',
                   }
                 );
@@ -128,7 +128,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
                   setIsAnimating(false);
                 }
               }
-            }, 40);
+            }, 25);
           });
         });
       });
