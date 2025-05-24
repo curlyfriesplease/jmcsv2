@@ -47,9 +47,9 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
 
     const wordElements = quoteRef.current.querySelectorAll('.word');
 
-    // Set initial GSAP state
+    // Set initial GSAP state (preserve background for rainbow)
     gsap.set(quoteRef.current, {
-      opacity: 0,
+      opacity: 1,
       scale: 0.8,
       rotationX: -90,
     });
@@ -62,9 +62,8 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
       transformOrigin: 'center bottom',
     });
 
-    // Animate container in
+    // Animate container in (keep opacity: 1 for rainbow visibility)
     gsap.to(quoteRef.current, {
-      opacity: 1,
       scale: 1,
       rotationX: 0,
       duration: 0.4,
@@ -93,9 +92,11 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
 
         // Then scramble and reveal characters within the word
         wordChars.forEach((charEl, charIndex) => {
-          const finalChar = charEl.getAttribute('data-char');
           let scrambleCount = 0;
           const maxScrambles = 6 + Math.random() * 4;
+
+          // Simple scrambling with direct text content
+          charEl.textContent = chars[Math.floor(Math.random() * chars.length)];
 
           gsap.delayedCall(charIndex * 0.03, () => {
             const scrambleInterval = setInterval(() => {
@@ -105,16 +106,16 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
                 scrambleCount++;
               } else {
                 // Reveal final character
-                charEl.textContent = finalChar;
+                charEl.textContent = charEl.getAttribute('data-char') || '';
                 clearInterval(scrambleInterval);
 
                 // Add bounce effect when character is revealed
                 gsap.fromTo(
                   charEl,
-                  { scale: 1.3, color: '#00ff88' },
+                  { scale: 1.3, filter: 'brightness(1.5)' },
                   {
                     scale: 1,
-                    color: '#ffffff',
+                    filter: 'brightness(1)',
                     duration: 0.15,
                     ease: 'back.out(2)',
                   }
@@ -142,31 +143,53 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
     }
 
     const charElements = quoteRef.current.querySelectorAll('.char');
+    const chars = '!<>-_\\/[]{}—=+*^?#________';
 
-    // First scramble all characters quickly
-    charElements.forEach((el) => {
-      if (el.textContent === ' ') return;
-      const chars = '!<>-_\\/[]{}—=+*^?#________';
-      el.textContent = chars[Math.floor(Math.random() * chars.length)];
+    // Animate characters into scrambled state smoothly
+    charElements.forEach((charEl, index) => {
+      if (charEl.textContent === ' ') return;
+
+      // Store original character for reference
+      let scrambleCount = 0;
+      const maxScrambles = 3 + Math.random() * 2; // Fewer scrambles for exit
+
+      gsap.delayedCall(index * 0.008, () => {
+        // Faster stagger for exit
+        const scrambleInterval = setInterval(() => {
+          if (scrambleCount < maxScrambles) {
+            charEl.textContent =
+              chars[Math.floor(Math.random() * chars.length)];
+            scrambleCount++;
+          } else {
+            // Keep final scrambled character
+            charEl.textContent =
+              chars[Math.floor(Math.random() * chars.length)];
+            clearInterval(scrambleInterval);
+          }
+        }, 30); // Slightly slower than entrance for smoothness
+      });
     });
 
-    // Then animate out
-    gsap.to(quoteRef.current, {
-      opacity: 0,
-      scale: 0.6,
-      rotationX: 90,
-      duration: 0.8,
-      ease: 'power4.in',
-      onComplete: callback,
-    });
+    // Start the exit animation after a brief delay to let scrambling begin
+    gsap.delayedCall(0.2, () => {
+      // Animate container out
+      gsap.to(quoteRef.current, {
+        opacity: 0,
+        scale: 0.6,
+        rotationX: 90,
+        duration: 0.3, // Faster exit
+        ease: 'power4.in',
+        onComplete: callback,
+      });
 
-    // Add individual character animations
-    gsap.to(charElements, {
-      scale: 0,
-      rotation: 180,
-      duration: 0.6,
-      ease: 'power2.in',
-      stagger: 0.01,
+      // Add individual character animations
+      gsap.to(charElements, {
+        scale: 0,
+        rotation: 180,
+        duration: 0.25, // Faster character exit
+        ease: 'power2.in',
+        stagger: 0.005,
+      });
     });
   };
 
@@ -205,22 +228,22 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   }, [settings]);
 
   useEffect(() => {
-    // Initial entrance animation
+    // Initial entrance animation (reduced to preserve rainbow text)
     if (containerRef.current) {
       gsap.fromTo(
         containerRef.current,
         {
           opacity: 0,
-          scale: 0.8,
-          rotationY: 180,
+          scale: 0.9,
+          rotationY: 45,
         },
         {
           opacity: 1,
           scale: 1,
           rotationY: 0,
-          duration: 1.2,
+          duration: 0.8,
           ease: 'back.out(1.7)',
-          delay: 0.3,
+          delay: 0.2,
         }
       );
     }
