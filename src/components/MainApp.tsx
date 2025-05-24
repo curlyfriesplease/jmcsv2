@@ -24,7 +24,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   const [currentJonFace, setCurrentJonFace] = useState(0);
   const [rainbowMode, setRainbowMode] = useState<
     'none' | 'enabled' | 'simple' | 'shimmer'
-  >('none');
+  >('enabled');
 
   const quoteRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
