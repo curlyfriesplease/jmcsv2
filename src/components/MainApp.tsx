@@ -33,7 +33,8 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   const animateQuoteIn = (text: string) => {
     if (!quoteRef.current) return;
 
-    const chars = '!<>-_\\/[]{}—=+*^?#________';
+    // Use only standard ASCII characters that work well in monospace
+    const chars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
     const words = text.split(' ');
 
     // Create word spans, each containing character spans with the final text
@@ -209,7 +210,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
     }
 
     const charElements = quoteRef.current.querySelectorAll('.char');
-    const chars = '!<>-_\\/[]{}—=+*^?#________';
+    const chars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
 
     // Animate characters into scrambled state smoothly
     charElements.forEach((charEl, index) => {
