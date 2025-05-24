@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import './SplashScreen.css';
+import '../styles/imageEnhancements.css';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -110,13 +111,13 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             ref={backgroundRef}
             src="/src/assets/splash/splashMe.png"
             alt="Splash Background"
-            className="splash-background"
+            className="splash-background-enhanced"
           />
           <img
             ref={logoRef}
             src="/src/assets/splash/splashLogo.png"
             alt="Splash Logo"
-            className="splash-logo"
+            className="splash-logo-enhanced"
           />
         </div>
         <p ref={clickTextRef} className="click-text">

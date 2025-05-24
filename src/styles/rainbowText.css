@@ -1,0 +1,128 @@
+/*
+ * RAINBOW TEXT EFFECTS
+ * Purpose: Add shimmering rainbow text effects to quote text
+ *
+ * Approach: Use CSS animations on individual characters that work alongside GSAP
+ * without conflicting with text content changes or opacity animations
+ */
+
+/* Rainbow effect using CSS custom properties and text-shadow */
+.quote-text.rainbow-enabled .char {
+  /* Use text-shadow approach instead of background-clip to avoid GSAP conflicts */
+  animation: rainbow-cycle 4s ease-in-out infinite;
+  animation-delay: calc(var(--char-index, 0) * 0.02s); /* Stagger effect */
+  /* Override the color: inherit from MainApp.css */
+  color: #ff0080 !important;
+}
+
+/* Rainbow animation using hue rotation on text-shadow */
+@keyframes rainbow-cycle {
+  0% {
+    color: #ff0080;
+    text-shadow: 0 0 10px #ff0080, 0 0 20px #ff008055, 0 0 30px #ff008033;
+  }
+  14% {
+    color: #ff8000;
+    text-shadow: 0 0 10px #ff8000, 0 0 20px #ff800055, 0 0 30px #ff800033;
+  }
+  28% {
+    color: #ffff00;
+    text-shadow: 0 0 10px #ffff00, 0 0 20px #ffff0055, 0 0 30px #ffff0033;
+  }
+  42% {
+    color: #80ff00;
+    text-shadow: 0 0 10px #80ff00, 0 0 20px #80ff0055, 0 0 30px #80ff0033;
+  }
+  57% {
+    color: #00ff80;
+    text-shadow: 0 0 10px #00ff80, 0 0 20px #00ff8055, 0 0 30px #00ff8033;
+  }
+  71% {
+    color: #0080ff;
+    text-shadow: 0 0 10px #0080ff, 0 0 20px #0080ff55, 0 0 30px #0080ff33;
+  }
+  85% {
+    color: #8000ff;
+    text-shadow: 0 0 10px #8000ff, 0 0 20px #8000ff55, 0 0 30px #8000ff33;
+  }
+  100% {
+    color: #ff0080;
+    text-shadow: 0 0 10px #ff0080, 0 0 20px #ff008055, 0 0 30px #ff008033;
+  }
+}
+
+/* Alternative: Simpler hue rotation approach */
+.quote-text.rainbow-simple .char {
+  color: hsl(calc(var(--char-index, 0) * 30), 100%, 60%) !important;
+  animation: rainbow-hue 4s ease-in-out infinite;
+  animation-delay: calc(var(--char-index, 0) * 0.05s);
+}
+
+@keyframes rainbow-hue {
+  0% {
+    filter: hue-rotate(0deg) brightness(1.1);
+  }
+  25% {
+    filter: hue-rotate(90deg) brightness(1.2);
+  }
+  50% {
+    filter: hue-rotate(180deg) brightness(1.1);
+  }
+  75% {
+    filter: hue-rotate(270deg) brightness(1.2);
+  }
+  100% {
+    filter: hue-rotate(360deg) brightness(1.1);
+  }
+}
+
+/* Shimmer wave effect */
+.quote-text.rainbow-shimmer .char {
+  background: linear-gradient(
+    90deg,
+    #ff0080 0%,
+    #ff8000 14%,
+    #ffff00 28%,
+    #80ff00 42%,
+    #00ff80 57%,
+    #0080ff 71%,
+    #8000ff 85%,
+    #ff0080 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent !important;
+  animation: rainbow-shimmer 5s ease-in-out infinite;
+}
+
+@keyframes rainbow-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Ensure rainbow effects work with monospace characters */
+.quote-text.rainbow-enabled .char,
+.quote-text.rainbow-simple .char,
+.quote-text.rainbow-shimmer .char {
+  /* Preserve the monospace character styling */
+  font-family: inherit;
+  width: inherit;
+  text-align: inherit;
+  position: relative;
+}
+
+/* Disable rainbow during scrambling to avoid conflicts */
+.quote-text.scrambling .char {
+  animation: none !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  text-shadow: none !important;
+  background: none !important;
+}

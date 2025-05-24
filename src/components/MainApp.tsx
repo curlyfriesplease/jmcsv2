@@ -3,6 +3,8 @@ import { gsap } from 'gsap';
 import { quotesManager, type Quote } from '../utils/quotesManager';
 import type { Settings } from '../App';
 import './MainApp.css';
+import '../styles/imageEnhancements.css';
+import '../styles/rainbowText.css';
 
 interface MainAppProps {
   onOpenSettings: () => void;
@@ -20,6 +22,9 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [currentJonFace, setCurrentJonFace] = useState(0);
+  const [rainbowMode, setRainbowMode] = useState<
+    'none' | 'enabled' | 'simple' | 'shimmer'
+  >('none');
 
   const quoteRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,7 +43,9 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
           .split('')
           .map(
             (char, charIndex) =>
-              `<span class="char" data-char="${char}" data-word="${wordIndex}" data-char-index="${charIndex}">
+              `<span class="char" data-char="${char}" data-word="${wordIndex}" data-char-index="${charIndex}" style="--char-index: ${
+                wordIndex * 10 + charIndex
+              }">
                 ${char}
               </span>`
           )
@@ -46,6 +53,52 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
         return `<span class="word" data-word-index="${wordIndex}">${charSpans}</span>`;
       })
       .join(' ');
+
+    // Apply rainbow effect class
+    const rainbowClass = rainbowMode !== 'none' ? `rainbow-${rainbowMode}` : '';
+    console.log(
+      '🌈 Applying rainbow class:',
+      rainbowClass,
+      'for mode:',
+      rainbowMode
+    );
+    if (rainbowClass) {
+      quoteRef.current.classList.add(rainbowClass);
+      console.log(
+        '🌈 Added class:',
+        rainbowClass,
+        'to element:',
+        quoteRef.current
+      );
+    } else {
+      // Remove any existing rainbow classes
+      quoteRef.current.classList.remove(
+        'rainbow-enabled',
+        'rainbow-simple',
+        'rainbow-shimmer'
+      );
+      console.log('🌈 Removed all rainbow classes');
+    }
+
+    console.log('🌈 Current element classes:', quoteRef.current.className);
+
+    // Debug: Check if the CSS is actually being applied
+    setTimeout(() => {
+      const firstChar = quoteRef.current?.querySelector('.char');
+      if (firstChar) {
+        const computedStyle = window.getComputedStyle(firstChar);
+        console.log('🌈 First character computed color:', computedStyle.color);
+        console.log(
+          '🌈 First character computed text-shadow:',
+          computedStyle.textShadow
+        );
+        console.log(
+          '🌈 First character computed animation:',
+          computedStyle.animation
+        );
+        console.log('🌈 Character element:', firstChar);
+      }
+    }, 100);
 
     const wordElements = quoteRef.current.querySelectorAll('.word');
 
@@ -94,6 +147,11 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
           let scrambleCount = 0;
           const maxScrambles = 6 + Math.random() * 4;
 
+          // Add scrambling class to disable rainbow during scramble
+          if (quoteRef.current) {
+            quoteRef.current.classList.add('scrambling');
+          }
+
           // Start with scrambled character
           charEl.textContent = chars[Math.floor(Math.random() * chars.length)];
 
@@ -107,6 +165,11 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
                 // Reveal final character
                 charEl.textContent = charEl.getAttribute('data-char') || '';
                 clearInterval(scrambleInterval);
+
+                // Remove scrambling class when done
+                if (quoteRef.current) {
+                  quoteRef.current.classList.remove('scrambling');
+                }
 
                 // Add bounce effect when character is revealed
                 gsap.fromTo(
@@ -225,6 +288,48 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
     loadNextQuote();
   }, [settings]);
 
+  // Debug: Log rainbow mode changes
+  useEffect(() => {
+    console.log('🌈 Rainbow mode changed to:', rainbowMode);
+  }, [rainbowMode]);
+
+  // Apply rainbow mode changes immediately to existing quote
+  useEffect(() => {
+    if (!quoteRef.current) return;
+
+    // Remove any existing rainbow classes
+    quoteRef.current.classList.remove(
+      'rainbow-enabled',
+      'rainbow-simple',
+      'rainbow-shimmer'
+    );
+
+    // Apply new rainbow class if not 'none'
+    const rainbowClass = rainbowMode !== 'none' ? `rainbow-${rainbowMode}` : '';
+    if (rainbowClass) {
+      quoteRef.current.classList.add(rainbowClass);
+      console.log('🌈 Immediately applied class:', rainbowClass);
+    } else {
+      console.log('🌈 Removed all rainbow classes');
+    }
+  }, [rainbowMode]);
+
+  const cycleRainbowMode = () => {
+    console.log('🌈 Rainbow button clicked! Current mode:', rainbowMode);
+    setRainbowMode((current) => {
+      const modes: Array<'none' | 'enabled' | 'simple' | 'shimmer'> = [
+        'none',
+        'enabled',
+        'simple',
+        'shimmer',
+      ];
+      const currentIndex = modes.indexOf(current);
+      const nextMode = modes[(currentIndex + 1) % modes.length];
+      console.log('🌈 Cycling from:', current, 'to:', nextMode);
+      return nextMode;
+    });
+  };
+
   useEffect(() => {
     // Initial entrance animation (reduced to preserve rainbow text)
     if (containerRef.current) {
@@ -271,6 +376,18 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
 
   return (
     <div ref={containerRef} className="main-app">
+      {/* Rainbow mode cycle button */}
+      <button
+        className="rainbow-button"
+        onClick={cycleRainbowMode}
+        aria-label={`Rainbow Mode: ${rainbowMode}`}
+        title={`Current: ${
+          rainbowMode === 'none' ? 'Off' : rainbowMode
+        }. Click to cycle.`}
+      >
+        🌈
+      </button>
+
       {/* Settings button */}
       <button
         className="settings-button"
@@ -318,14 +435,14 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
         {/* Jon face button */}
         <button
           ref={jonButtonRef}
-          className="jon-face-button"
+          className="jon-face-button-enhanced"
           onClick={handleJonFaceClick}
           disabled={isAnimating || !currentQuote}
         >
           <img
             src={jonFaces[currentJonFace]}
             alt="Jon Face"
-            className="jon-face-image"
+            className="jon-face-image-enhanced"
           />
         </button>
       </div>

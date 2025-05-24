@@ -6,13 +6,14 @@
   flex-direction: column; /* Subtle background shimmer - uncomment to enable  background: linear-gradient(    45deg,    rgba(255, 0, 128, 0.1),    rgba(255, 128, 0, 0.1),    rgba(255, 255, 0, 0.1),    rgba(128, 255, 0, 0.1),    rgba(0, 255, 128, 0.1),    rgba(0, 128, 255, 0.1),    rgba(128, 0, 255, 0.1),    rgba(255, 0, 128, 0.1)  );  background-size: 800% 800%;  animation: background-shimmer 10s ease-in-out infinite;  */
 }
 
-.settings-button {
+.main-app .settings-button {
   position: absolute;
   top: 1rem;
   right: 1rem;
   width: 44px;
   height: 44px;
   max-width: 44px;
+  min-width: 44px; /* Override SettingsModal.css min-width: 100px */
   border: none;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
@@ -24,23 +25,24 @@
   justify-content: center;
   transition: all 0.3s ease;
   z-index: 10;
+  padding: 0; /* Override SettingsModal.css padding */
 }
 
-.settings-button:hover {
+.main-app .settings-button:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: scale(1.05);
   box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
 }
 
-.settings-button:active {
+.main-app .settings-button:active {
   transform: scale(0.95);
 }
 
-.settings-button svg {
+.main-app .settings-button svg {
   transition: transform 0.3s ease;
 }
 
-.settings-button:hover svg {
+.main-app .settings-button:hover svg {
   transform: rotate(90deg);
 }
 
@@ -180,12 +182,13 @@
 
 /* Desktop styles */
 @media (min-width: 768px) {
-  .settings-button {
+  .main-app .settings-button {
     top: 2rem;
     right: 2rem;
     width: 48px;
     height: 48px;
     max-width: 48px;
+    min-width: 48px; /* Override SettingsModal.css min-width: 100px */
   }
 
   .quote-container {
