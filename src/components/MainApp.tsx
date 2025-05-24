@@ -31,14 +31,16 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
     const chars = '!<>-_\\/[]{}—=+*^?#________';
     const words = text.split(' ');
 
-    // Create word spans, each containing character spans
+    // Create word spans, each containing character spans with the final text
     quoteRef.current.innerHTML = words
       .map((word, wordIndex) => {
         const charSpans = word
           .split('')
           .map(
             (char, charIndex) =>
-              `<span class="char" data-char="${char}" data-word="${wordIndex}" data-char-index="${charIndex}">${char}</span>`
+              `<span class="char" data-char="${char}" data-word="${wordIndex}" data-char-index="${charIndex}">
+                ${char}
+              </span>`
           )
           .join('');
         return `<span class="word" data-word-index="${wordIndex}">${charSpans}</span>`;
@@ -47,7 +49,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
 
     const wordElements = quoteRef.current.querySelectorAll('.word');
 
-    // Set initial GSAP state (preserve background for rainbow)
+    // Set initial GSAP state
     gsap.set(quoteRef.current, {
       opacity: 1,
       scale: 0.8,
@@ -62,7 +64,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
       transformOrigin: 'center bottom',
     });
 
-    // Animate container in (keep opacity: 1 for rainbow visibility)
+    // Animate container in
     gsap.to(quoteRef.current, {
       scale: 1,
       rotationX: 0,
@@ -73,11 +75,6 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
     // Animate words in with stagger
     wordElements.forEach((wordEl, wordIndex) => {
       const wordChars = wordEl.querySelectorAll('.char');
-
-      // Initially scramble all characters in this word
-      wordChars.forEach((char) => {
-        char.textContent = chars[Math.floor(Math.random() * chars.length)];
-      });
 
       // Animate word in after staggered delay
       gsap.delayedCall(wordIndex * 0.15, () => {
@@ -91,11 +88,13 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
         });
 
         // Then scramble and reveal characters within the word
+        // Note: Using fixed-width chars (1ch width + monospace font) prevents jumping
+        // as all scrambled characters occupy identical space regardless of letter/symbol
         wordChars.forEach((charEl, charIndex) => {
           let scrambleCount = 0;
           const maxScrambles = 6 + Math.random() * 4;
 
-          // Simple scrambling with direct text content
+          // Start with scrambled character
           charEl.textContent = chars[Math.floor(Math.random() * chars.length)];
 
           gsap.delayedCall(charIndex * 0.03, () => {
@@ -149,7 +148,6 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
     charElements.forEach((charEl, index) => {
       if (charEl.textContent === ' ') return;
 
-      // Store original character for reference
       let scrambleCount = 0;
       const maxScrambles = 3 + Math.random() * 2; // Fewer scrambles for exit
 
@@ -161,12 +159,12 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
               chars[Math.floor(Math.random() * chars.length)];
             scrambleCount++;
           } else {
-            // Keep final scrambled character
+            // Keep final scrambled character visible during exit
             charEl.textContent =
               chars[Math.floor(Math.random() * chars.length)];
             clearInterval(scrambleInterval);
           }
-        }, 30); // Slightly slower than entrance for smoothness
+        }, 30);
       });
     });
 

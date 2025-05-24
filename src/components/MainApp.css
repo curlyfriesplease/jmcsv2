@@ -90,6 +90,20 @@
   transition: transform 0.2s ease;
   color: inherit;
   position: relative;
+
+  /*
+   * SOLUTION 2: Fixed Character Width (Monospace Approach)
+   * Purpose: Prevent words from jumping around during scrambling animations
+   *
+   * Problem: Different characters have different widths (e.g., 'i' vs 'W'),
+   * causing words to shift when characters change during scrambling
+   *
+   * Solution: Force all characters to have identical widths using monospace font
+   */
+  font-family: 'Courier New', monospace; /* Monospace ensures all chars same width */
+  font-feature-settings: 'tnum'; /* Use tabular (fixed-width) numbers */
+  width: 1ch; /* Force exactly 1 character width for each char element */
+  text-align: center; /* Center character within its fixed-width container */
 }
 
 .no-quotes {
