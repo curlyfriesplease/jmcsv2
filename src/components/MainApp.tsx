@@ -147,8 +147,8 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
           let scrambleCount = 0;
           const maxScrambles = 6 + Math.random() * 4;
 
-          // Add scrambling class to disable rainbow during scramble
-          if (quoteRef.current) {
+          // Add scrambling class to disable rainbow during scramble (only once)
+          if (wordIndex === 0 && charIndex === 0 && quoteRef.current) {
             quoteRef.current.classList.add('scrambling');
           }
 
@@ -166,8 +166,12 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
                 charEl.textContent = charEl.getAttribute('data-char') || '';
                 clearInterval(scrambleInterval);
 
-                // Remove scrambling class when done
-                if (quoteRef.current) {
+                // Only remove scrambling class when this is the LAST character to complete
+                if (
+                  wordIndex === wordElements.length - 1 &&
+                  charIndex === wordChars.length - 1 &&
+                  quoteRef.current
+                ) {
                   quoteRef.current.classList.remove('scrambling');
                 }
 

@@ -120,9 +120,11 @@
 }
 
 /* Disable rainbow during scrambling to avoid conflicts */
+/*
 .quote-text.scrambling .char {
   animation: none !important;
   color: rgba(255, 255, 255, 0.8) !important;
   text-shadow: none !important;
   background: none !important;
 }
+*/
