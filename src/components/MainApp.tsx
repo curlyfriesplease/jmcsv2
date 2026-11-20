@@ -9,6 +9,7 @@ import jonFace1 from '../assets/jonfaces/jonface1PNG.png';
 import jonFace2 from '../assets/jonfaces/jonface2PNG.png';
 import jonFace3 from '../assets/jonfaces/jonface3PNG.png';
 import jonFace4 from '../assets/jonfaces/jonface4PNG.png';
+import { playRandomWildAnimation } from '../effects/wildAnimations';
 
 interface MainAppProps {
   onOpenSettings: () => void;
@@ -366,6 +367,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   };
 
   useEffect(() => {
+    playRandomWildAnimation();
     // Initial entrance animation (reduced to preserve rainbow text)
     if (containerRef.current) {
       gsap.fromTo(
@@ -390,6 +392,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   const handleJonFaceClick = () => {
     if (isAnimating) return;
 
+    playRandomWildAnimation();
     // Animate button
     if (jonButtonRef.current) {
       gsap.to(jonButtonRef.current, {

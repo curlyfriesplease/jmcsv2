@@ -4,6 +4,7 @@ import './SplashScreen.css';
 import '../styles/imageEnhancements.css';
 import splashMe from '../assets/splash/splashMe.png';
 import splashLogo from '../assets/splash/splashLogo.png';
+import { playRandomWildAnimation } from '../effects/wildAnimations';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -14,8 +15,8 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   const backgroundRef = useRef<HTMLImageElement>(null);
   const logoRef = useRef<HTMLImageElement>(null);
   const clickTextRef = useRef<HTMLParagraphElement>(null);
-
   useLayoutEffect(() => {
+    playRandomWildAnimation();
     const tl = gsap.timeline();
 
     // Initial state - everything hidden and transformed.
@@ -77,6 +78,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   }, []);
 
   const handleClick = () => {
+    playRandomWildAnimation();
     // Crazy exit animation
     const exitTl = gsap.timeline({
       onComplete: onComplete,
