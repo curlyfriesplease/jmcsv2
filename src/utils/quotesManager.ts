@@ -44,6 +44,7 @@ class QuotesManager {
   private seenQuoteIds: Set<string> = new Set();
   private availableQuotes: Quote[] = [];
   private isLoaded = false;
+  private listeners = new Set<() => void>();
 
   private readyPromise: Promise<void>;
 
@@ -105,6 +106,21 @@ class QuotesManager {
     );
   }
 
+  private notify() {
+    this.listeners.forEach((listener) => listener());
+  }
+
+  public subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private quotesMatching(settings: Settings): Quote[] {
+    return this.allQuotes.filter((quote) => this.isQuoteAllowed(quote, settings));
+  }
+
   public updateAvailableQuotes(settings: Settings) {
     if (!this.isLoaded) return;
 
@@ -135,6 +151,24 @@ class QuotesManager {
     }
 
     this.availableQuotes = unseen;
+    this.notify();
+  }
+
+  public getStats(settings: Settings): {
+    total: number;
+    seen: number;
+    remaining: number;
+  } {
+    const matching = this.quotesMatching(settings);
+    const seen = matching.filter((quote) =>
+      this.seenQuoteIds.has(quote.id)
+    ).length;
+
+    return {
+      total: matching.length,
+      seen,
+      remaining: matching.length - seen,
+    };
   }
 
   public getRandomQuote(): Quote | null {
@@ -151,6 +185,7 @@ class QuotesManager {
 
     // Remove from available quotes
     this.availableQuotes.splice(randomIndex, 1);
+    this.notify();
 
     return selectedQuote;
   }
@@ -161,18 +196,7 @@ class QuotesManager {
     localStorage.removeItem('seen-quotes');
     // Reset available quotes to all quotes
     this.availableQuotes = [...this.allQuotes];
-  }
-
-  public getRemainingCount(): number {
-    return this.availableQuotes.length;
-  }
-
-  public getTotalCount(): number {
-    return this.allQuotes.length;
-  }
-
-  public getSeenCount(): number {
-    return this.seenQuoteIds.size;
+    this.notify();
   }
 
   public isReady(): boolean {

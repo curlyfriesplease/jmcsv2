@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { Settings } from '../App';
 import { quotesManager } from '../utils/quotesManager';
 import './SettingsModal.css';
@@ -14,12 +14,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onSettingsChange,
   onClose,
 }) => {
+  const [statsVersion, setStatsVersion] = useState(0);
+
+  useEffect(() => {
+    return quotesManager.subscribe(() => {
+      setStatsVersion((version) => version + 1);
+    });
+  }, []);
+
   const handleSettingToggle = (key: keyof Settings) => {
-    onSettingsChange({
+    const nextSettings = {
       ...settings,
       [key]: !settings[key],
-    });
+    };
+    quotesManager.updateAvailableQuotes(nextSettings);
+    onSettingsChange(nextSettings);
   };
+
+  const stats = useMemo(
+    () => quotesManager.getStats(settings),
+    [settings, statsVersion]
+  );
 
   const handleRestoreDefaults = () => {
     quotesManager.restoreAllQuotes();
@@ -96,21 +111,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             <h3>Quote Stats</h3>
             <div className="stats-grid">
               <div className="stat-item">
-                <span className="stat-number">
-                  {quotesManager.getTotalCount()}
-                </span>
+                <span className="stat-number">{stats.total}</span>
                 <span className="stat-label">Total quotes</span>
               </div>
               <div className="stat-item">
-                <span className="stat-number">
-                  {quotesManager.getSeenCount()}
-                </span>
+                <span className="stat-number">{stats.seen}</span>
                 <span className="stat-label">Seen quotes</span>
               </div>
               <div className="stat-item">
-                <span className="stat-number">
-                  {quotesManager.getRemainingCount()}
-                </span>
+                <span className="stat-number">{stats.remaining}</span>
                 <span className="stat-label">Remaining</span>
               </div>
             </div>
