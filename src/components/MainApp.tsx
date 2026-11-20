@@ -18,6 +18,127 @@ interface MainAppProps {
 
 const jonFaces = [jonFace1, jonFace2, jonFace3, jonFace4];
 
+const SCRAMBLE_CHARS = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+function randomGlyph() {
+  return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+}
+
+const QuoteReveal = React.memo(function QuoteReveal({
+  text,
+  rainbowMode,
+  quoteRef,
+  onSettled,
+}: {
+  text: string;
+  rainbowMode: 'none' | 'enabled' | 'simple' | 'shimmer';
+  quoteRef: React.RefObject<HTMLDivElement | null>;
+  onSettled: React.RefObject<() => void>;
+}) {
+  useLayoutEffect(() => {
+    const root = quoteRef.current;
+    if (!root) return;
+
+    const intervals: ReturnType<typeof setInterval>[] = [];
+    let cancelled = false;
+    root.replaceChildren();
+
+    const wordElements: HTMLSpanElement[] = [];
+    text.split(' ').forEach((word, wordIndex) => {
+      if (wordIndex > 0) root.append(' ');
+      const wordEl = document.createElement('span');
+      wordEl.className = 'word';
+      word.split('').forEach((char, charIndex) => {
+        const charEl = document.createElement('span');
+        charEl.className = 'char';
+        charEl.dataset.char = char;
+        charEl.style.setProperty('--char-index', String(wordIndex * 10 + charIndex));
+        charEl.style.opacity = '0';
+        charEl.textContent = randomGlyph();
+        wordEl.appendChild(charEl);
+      });
+      root.appendChild(wordEl);
+      wordElements.push(wordEl);
+    });
+
+    gsap.killTweensOf(root);
+    gsap.set(root, { opacity: 1, scale: 0.8, rotationX: 0 });
+    gsap.set(wordElements, {
+      opacity: 1,
+      y: 30,
+      rotationX: 0,
+      transformOrigin: 'center bottom',
+    });
+    gsap.to(root, { scale: 1, rotationX: 0, duration: 0.4, ease: 'back.out(1.7)' });
+    gsap.to(wordElements, {
+      opacity: 1,
+      y: 0,
+      duration: 0.4,
+      stagger: 0.12,
+      ease: 'back.out(1.7)',
+      overwrite: 'auto',
+    });
+
+    wordElements.forEach((wordEl, wordIndex) => {
+      const wordChars = [...wordEl.querySelectorAll<HTMLSpanElement>('.char')];
+      gsap.delayedCall(wordIndex * 0.18, () => {
+        if (cancelled) return;
+        wordChars.forEach((charEl, charIndex) => {
+          gsap.delayedCall(charIndex * 0.036, () => {
+            if (cancelled) return;
+            charEl.style.opacity = '1';
+            let scrambleCount = 0;
+            const maxScrambles = 6 + Math.random() * 4;
+            if (wordIndex === 0 && charIndex === 0) root.classList.add('scrambling');
+
+            const scrambleInterval = setInterval(() => {
+              if (cancelled) {
+                clearInterval(scrambleInterval);
+                return;
+              }
+              if (scrambleCount < maxScrambles) {
+                charEl.textContent = randomGlyph();
+                scrambleCount += 1;
+              } else {
+                charEl.textContent = charEl.dataset.char || '';
+                clearInterval(scrambleInterval);
+                const isLast =
+                  wordIndex === wordElements.length - 1 &&
+                  charIndex === wordChars.length - 1;
+                if (isLast) {
+                  root.classList.remove('scrambling');
+                  onSettled.current();
+                }
+                gsap.fromTo(
+                  charEl,
+                  { scale: 1.3, filter: 'brightness(1.5)' },
+                  { scale: 1, filter: 'brightness(1)', duration: 0.15, ease: 'back.out(2)' }
+                );
+              }
+            }, 30);
+            intervals.push(scrambleInterval);
+          });
+        });
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      intervals.forEach(clearInterval);
+      gsap.killTweensOf(root);
+    };
+  }, [text, quoteRef, onSettled]);
+
+  useLayoutEffect(() => {
+    const root = quoteRef.current;
+    if (!root) return;
+    root.classList.remove('rainbow-enabled', 'rainbow-simple', 'rainbow-shimmer');
+    if (rainbowMode !== 'none') root.classList.add(`rainbow-${rainbowMode}`);
+  }, [rainbowMode, quoteRef]);
+
+  return <div ref={quoteRef} className="quote-text" />;
+});
+
 const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -31,189 +152,9 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   const jonButtonRef = useRef<HTMLButtonElement>(null);
   const currentQuoteRef = useRef<Quote | null>(null);
   const quoteRequestRef = useRef(0);
+  const quoteSettledRef = useRef<() => void>(() => {});
+  quoteSettledRef.current = () => setIsAnimating(false);
   currentQuoteRef.current = currentQuote;
-
-  const animateQuoteIn = (text: string) => {
-    if (!quoteRef.current) return;
-
-    // Use only standard ASCII characters that work well in monospace
-    const chars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-    const words = text.split(' ');
-
-    // Create word spans, each containing character spans with the final text
-    quoteRef.current.innerHTML = words
-      .map((word, wordIndex) => {
-        const charSpans = word
-          .split('')
-          .map(
-            (char, charIndex) =>
-              `<span class="char" data-char="${char}" data-word="${wordIndex}" data-char-index="${charIndex}" style="--char-index: ${
-                wordIndex * 10 + charIndex
-              }">
-                ${char}
-              </span>`
-          )
-          .join('');
-        return `<span class="word" data-word-index="${wordIndex}">${charSpans}</span>`;
-      })
-      .join(' ');
-
-    // Apply rainbow effect class
-    const rainbowClass = rainbowMode !== 'none' ? `rainbow-${rainbowMode}` : '';
-    console.log(
-      '🌈 Applying rainbow class:',
-      rainbowClass,
-      'for mode:',
-      rainbowMode
-    );
-    if (rainbowClass) {
-      quoteRef.current.classList.add(rainbowClass);
-      console.log(
-        '🌈 Added class:',
-        rainbowClass,
-        'to element:',
-        quoteRef.current
-      );
-    } else {
-      // Remove any existing rainbow classes
-      quoteRef.current.classList.remove(
-        'rainbow-enabled',
-        'rainbow-simple',
-        'rainbow-shimmer'
-      );
-      console.log('🌈 Removed all rainbow classes');
-    }
-
-    console.log('🌈 Current element classes:', quoteRef.current.className);
-
-    // Debug: Check if the CSS is actually being applied
-    setTimeout(() => {
-      const firstChar = quoteRef.current?.querySelector('.char');
-      if (firstChar) {
-        const computedStyle = window.getComputedStyle(firstChar);
-        console.log('🌈 First character computed color:', computedStyle.color);
-        console.log(
-          '🌈 First character computed text-shadow:',
-          computedStyle.textShadow
-        );
-        console.log(
-          '🌈 First character computed animation:',
-          computedStyle.animation
-        );
-        console.log('🌈 Character element:', firstChar);
-      }
-    }, 100);
-
-    const wordElements = quoteRef.current.querySelectorAll('.word');
-
-    // Keep the quote readable. An interrupted exit used to leave this
-    // element at opacity 0 and rotationX 90, which looks like a blank screen.
-    gsap.killTweensOf(quoteRef.current);
-    gsap.set(quoteRef.current, {
-      opacity: 1,
-      scale: 0.8,
-      rotationX: 0,
-    });
-
-    gsap.set(wordElements, {
-      opacity: 1,
-      y: 30,
-      rotationX: 0,
-      transformOrigin: 'center bottom',
-    });
-
-    gsap.to(quoteRef.current, {
-      scale: 1,
-      rotationX: 0,
-      duration: 0.4,
-      ease: 'back.out(1.7)',
-    });
-
-    gsap.to(wordElements, {
-      opacity: 1,
-      y: 0,
-      duration: 0.4,
-      stagger: 0.12,
-      ease: 'back.out(1.7)',
-      overwrite: 'auto',
-    });
-
-    // Animate words in with stagger
-    wordElements.forEach((wordEl, wordIndex) => {
-      const wordChars = wordEl.querySelectorAll('.char');
-
-      // Animate word in after staggered delay
-      gsap.delayedCall(wordIndex * 0.15, () => {
-        // First animate the word container
-        gsap.to(wordEl, {
-          opacity: 1,
-          y: 0,
-          rotationX: 0,
-          duration: 0.4,
-          ease: 'back.out(1.7)',
-        });
-
-        // Then scramble and reveal characters within the word
-        // Note: Using fixed-width chars (1ch width + monospace font) prevents jumping
-        // as all scrambled characters occupy identical space regardless of letter/symbol
-        wordChars.forEach((charEl, charIndex) => {
-          let scrambleCount = 0;
-          const maxScrambles = 6 + Math.random() * 4;
-
-          // Add scrambling class to disable rainbow during scramble (only once)
-          if (wordIndex === 0 && charIndex === 0 && quoteRef.current) {
-            quoteRef.current.classList.add('scrambling');
-          }
-
-          // Start with scrambled character
-          charEl.textContent = chars[Math.floor(Math.random() * chars.length)];
-
-          gsap.delayedCall(charIndex * 0.03, () => {
-            const scrambleInterval = setInterval(() => {
-              if (scrambleCount < maxScrambles) {
-                charEl.textContent =
-                  chars[Math.floor(Math.random() * chars.length)];
-                scrambleCount++;
-              } else {
-                // Reveal final character
-                charEl.textContent = charEl.getAttribute('data-char') || '';
-                clearInterval(scrambleInterval);
-
-                // Only remove scrambling class when this is the LAST character to complete
-                if (
-                  wordIndex === wordElements.length - 1 &&
-                  charIndex === wordChars.length - 1 &&
-                  quoteRef.current
-                ) {
-                  quoteRef.current.classList.remove('scrambling');
-                }
-
-                // Add bounce effect when character is revealed
-                gsap.fromTo(
-                  charEl,
-                  { scale: 1.3, filter: 'brightness(1.5)' },
-                  {
-                    scale: 1,
-                    filter: 'brightness(1)',
-                    duration: 0.15,
-                    ease: 'back.out(2)',
-                  }
-                );
-
-                // Check if this is the last character to complete
-                if (
-                  wordIndex === wordElements.length - 1 &&
-                  charIndex === wordChars.length - 1
-                ) {
-                  setIsAnimating(false);
-                }
-              }
-            }, 25);
-          });
-        });
-      });
-    });
-  };
 
   const animateQuoteOut = (callback: () => void) => {
     const request = quoteRequestRef.current;
@@ -321,36 +262,6 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
     };
   }, [settings]);
 
-  useLayoutEffect(() => {
-    if (!currentQuote) return;
-    animateQuoteIn(currentQuote.text);
-  }, [currentQuote]);
-
-  // Debug: Log rainbow mode changes
-  useEffect(() => {
-    console.log('🌈 Rainbow mode changed to:', rainbowMode);
-  }, [rainbowMode]);
-
-  // Apply rainbow mode changes immediately to existing quote
-  useEffect(() => {
-    if (!quoteRef.current) return;
-
-    // Remove any existing rainbow classes
-    quoteRef.current.classList.remove(
-      'rainbow-enabled',
-      'rainbow-simple',
-      'rainbow-shimmer'
-    );
-
-    // Apply new rainbow class if not 'none'
-    const rainbowClass = rainbowMode !== 'none' ? `rainbow-${rainbowMode}` : '';
-    if (rainbowClass) {
-      quoteRef.current.classList.add(rainbowClass);
-      console.log('🌈 Immediately applied class:', rainbowClass);
-    } else {
-      console.log('🌈 Removed all rainbow classes');
-    }
-  }, [rainbowMode]);
 
   const cycleRainbowMode = () => {
     console.log('🌈 Rainbow button clicked! Current mode:', rainbowMode);
@@ -460,9 +371,12 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
       <div className="main-content">
         <div className="quote-container">
           {currentQuote ? (
-            <div ref={quoteRef} className="quote-text">
-              {currentQuote.text}
-            </div>
+            <QuoteReveal
+              text={currentQuote.text}
+              rainbowMode={rainbowMode}
+              quoteRef={quoteRef}
+              onSettled={quoteSettledRef}
+            />
           ) : (
             <div className="no-quotes">
               <h2>No more quotes available!</h2>

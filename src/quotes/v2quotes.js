@@ -14,7 +14,7 @@ export const quoteList = [
 ["Have you sleptwalked recently", 0, 0],
 ["In your prime, could you beat up your mum or dad in their prime", 1, 0],
 ["Do you remember ever having been sent to your room", 0, 0],
-["What's your favourite long, slow burn film that most people can't get on board with because they simply don't have the patience and intelligence to enjoy The English Patient which is, we agree, a masterpiece?", 0, 0],
+["What's your favourite long, slow burn film and why is it The English Patient?", 0, 0],
 ["Why is it completely unhinged to have the same dinner everyday, when it's fine to do that for breakfast?", 0, 0],
 ["What's your pocket system, what goes where", 0, 0],
 ["What is the greatest unsolved mystery of your life", 1, 0],
