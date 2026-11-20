@@ -5,18 +5,17 @@ import type { Settings } from '../App';
 import './MainApp.css';
 import '../styles/imageEnhancements.css';
 import '../styles/rainbowText.css';
+import jonFace1 from '../assets/jonfaces/jonface1PNG.png';
+import jonFace2 from '../assets/jonfaces/jonface2PNG.png';
+import jonFace3 from '../assets/jonfaces/jonface3PNG.png';
+import jonFace4 from '../assets/jonfaces/jonface4PNG.png';
 
 interface MainAppProps {
   onOpenSettings: () => void;
   settings: Settings;
 }
 
-const jonFaces = [
-  '/src/assets/jonfaces/jonface1PNG.png',
-  '/src/assets/jonfaces/jonface2PNG.png',
-  '/src/assets/jonfaces/jonface3PNG.png',
-  '/src/assets/jonfaces/jonface4PNG.png',
-];
+const jonFaces = [jonFace1, jonFace2, jonFace3, jonFace4];
 
 const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
