@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { quotesManager, type Quote } from '../utils/quotesManager';
 import type { Settings } from '../App';
@@ -29,6 +29,9 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   const quoteRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const jonButtonRef = useRef<HTMLButtonElement>(null);
+  const currentQuoteRef = useRef<Quote | null>(null);
+  const quoteRequestRef = useRef(0);
+  currentQuoteRef.current = currentQuote;
 
   const animateQuoteIn = (text: string) => {
     if (!quoteRef.current) return;
@@ -103,27 +106,36 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
 
     const wordElements = quoteRef.current.querySelectorAll('.word');
 
-    // Set initial GSAP state
+    // Keep the quote readable. An interrupted exit used to leave this
+    // element at opacity 0 and rotationX 90, which looks like a blank screen.
+    gsap.killTweensOf(quoteRef.current);
     gsap.set(quoteRef.current, {
       opacity: 1,
       scale: 0.8,
-      rotationX: -90,
+      rotationX: 0,
     });
 
-    // Set initial word states
     gsap.set(wordElements, {
-      opacity: 0,
-      y: 50,
-      rotationX: 90,
+      opacity: 1,
+      y: 30,
+      rotationX: 0,
       transformOrigin: 'center bottom',
     });
 
-    // Animate container in
     gsap.to(quoteRef.current, {
       scale: 1,
       rotationX: 0,
       duration: 0.4,
       ease: 'back.out(1.7)',
+    });
+
+    gsap.to(wordElements, {
+      opacity: 1,
+      y: 0,
+      duration: 0.4,
+      stagger: 0.12,
+      ease: 'back.out(1.7)',
+      overwrite: 'auto',
     });
 
     // Animate words in with stagger
@@ -204,6 +216,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
   };
 
   const animateQuoteOut = (callback: () => void) => {
+    const request = quoteRequestRef.current;
     if (!quoteRef.current) {
       callback();
       return;
@@ -238,6 +251,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
 
     // Start the exit animation after a brief delay to let scrambling begin
     gsap.delayedCall(0.2, () => {
+      if (request !== quoteRequestRef.current || !quoteRef.current) return;
       // Animate container out
       gsap.to(quoteRef.current, {
         opacity: 0,
@@ -245,7 +259,10 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
         rotationX: 90,
         duration: 0.3, // Faster exit
         ease: 'power4.in',
-        onComplete: callback,
+        onComplete: () => {
+          if (request !== quoteRequestRef.current) return;
+          callback();
+        },
       });
 
       // Add individual character animations
@@ -259,39 +276,55 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
     });
   };
 
+  const showNextQuote = () => {
+    const nextQuote = quotesManager.getRandomQuote();
+    setCurrentQuote(nextQuote);
+    setIsAnimating(Boolean(nextQuote));
+  };
+
   const loadNextQuote = () => {
     if (isAnimating) return;
 
     setIsAnimating(true);
 
     if (currentQuote) {
-      // Animate out current quote, then load new one
-      animateQuoteOut(() => {
-        const nextQuote = quotesManager.getRandomQuote();
-        setCurrentQuote(nextQuote);
-        if (nextQuote) {
-          setTimeout(() => animateQuoteIn(nextQuote.text), 100);
-        } else {
-          setIsAnimating(false);
-        }
-      });
+      animateQuoteOut(showNextQuote);
     } else {
-      // First load
-      const nextQuote = quotesManager.getRandomQuote();
-      setCurrentQuote(nextQuote);
-      if (nextQuote) {
-        setTimeout(() => animateQuoteIn(nextQuote.text), 500);
-      } else {
-        setIsAnimating(false);
-      }
+      showNextQuote();
     }
   };
 
   useEffect(() => {
-    // Update available quotes when settings change
-    quotesManager.updateAvailableQuotes(settings);
-    loadNextQuote();
+    const request = ++quoteRequestRef.current;
+    let cancelled = false;
+
+    quotesManager.whenReady().then(() => {
+      if (cancelled || request !== quoteRequestRef.current) return;
+
+      if (quoteRef.current) {
+        gsap.killTweensOf(quoteRef.current);
+        gsap.set(quoteRef.current, { opacity: 1, scale: 1, rotationX: 0 });
+      }
+
+      quotesManager.updateAvailableQuotes(settings);
+      const current = currentQuoteRef.current;
+      if (current && quotesManager.isQuoteAllowed(current, settings)) {
+        setIsAnimating(false);
+        return;
+      }
+
+      showNextQuote();
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [settings]);
+
+  useLayoutEffect(() => {
+    if (!currentQuote) return;
+    animateQuoteIn(currentQuote.text);
+  }, [currentQuote]);
 
   // Debug: Log rainbow mode changes
   useEffect(() => {

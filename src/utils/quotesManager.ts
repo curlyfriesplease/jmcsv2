@@ -45,9 +45,21 @@ class QuotesManager {
   private availableQuotes: Quote[] = [];
   private isLoaded = false;
 
+  private readyPromise: Promise<void>;
+
   constructor() {
     this.loadSeenQuotes();
-    this.loadQuotes();
+    this.readyPromise = this.loadQuotes();
+  }
+
+  public whenReady(): Promise<void> {
+    return this.readyPromise;
+  }
+
+  public isQuoteAllowed(quote: Quote, settings: Settings): boolean {
+    if (settings.excludeV1Quotes && quote.source === 'v1') return false;
+    if (settings.removeNSFWQuotes && quote.isNSFW) return false;
+    return true;
   }
 
   private async loadQuotes() {
@@ -108,10 +120,21 @@ class QuotesManager {
       filtered = filtered.filter((quote) => !quote.isNSFW);
     }
 
-    // Remove already seen quotes
-    this.availableQuotes = filtered.filter(
-      (quote) => !this.seenQuoteIds.has(quote.id)
-    );
+    // Remove already seen quotes. A restrictive filter can otherwise look
+    // empty: the few v2 quotes are easy to mark seen during a mixed run,
+    // and excluding v1 then leaves nothing unseen even though v2 quotes exist.
+    let unseen = filtered.filter((quote) => !this.seenQuoteIds.has(quote.id));
+    const filterIsRestrictive =
+      settings.excludeV1Quotes || settings.removeNSFWQuotes;
+    if (unseen.length === 0 && filtered.length > 0 && filterIsRestrictive) {
+      for (const quote of filtered) {
+        this.seenQuoteIds.delete(quote.id);
+      }
+      this.saveSeenQuotes();
+      unseen = filtered;
+    }
+
+    this.availableQuotes = unseen;
   }
 
   public getRandomQuote(): Quote | null {
