@@ -52,6 +52,31 @@ export default tseslint.config({
   },
 })
 ```
+## Quotes
+
+Quotes live in two files, each exporting a `quoteList` array:
+
+- `src/quotes/v1quotes.js` — the original set
+- `src/quotes/v2quotes.js` — the newer set
+
+Each quote is a three-item array, not an object. The text comes first. Two numbers follow it:
+
+```js
+["Have you slapped anyone?", 1, 0]
+```
+
+| Position | Meaning | Values |
+| --- | --- | --- |
+| 0 | Quote text | string |
+| 1 | Favourite | `1` favourite, `0` not |
+| 2 | NSFW | `1` NSFW, `0` not |
+
+`src/utils/quotesManager.ts` loads both lists and turns each array into a quote with `text`, `isFavourite` (`quote[1] === 1`), `isNSFW` (`quote[2] === 1`), `source` (`"v1"` or `"v2"`), and an id such as `v1-12` or `v2-3`. The id is the list name plus the quote's index in that file.
+
+The NSFW flag is what the "remove NSFW" setting filters on. The source is what the "exclude v1" setting filters on. The favourite flag is stored on the quote and is not used when picking the next quote.
+
+A shown quote's id is saved in `localStorage` under `seen-quotes`, so it is not drawn again until the seen list is cleared.
+
 ## Credits
 
 ### Font

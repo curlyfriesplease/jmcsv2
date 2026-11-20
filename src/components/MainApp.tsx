@@ -321,18 +321,16 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
 
   const cycleRainbowMode = () => {
     console.log('🌈 Rainbow button clicked! Current mode:', rainbowMode);
-    setRainbowMode((current) => {
-      const modes: Array<'none' | 'enabled' | 'simple' | 'shimmer'> = [
-        'none',
-        'enabled',
-        'simple',
-        'shimmer',
-      ];
-      const currentIndex = modes.indexOf(current);
-      const nextMode = modes[(currentIndex + 1) % modes.length];
-      console.log('🌈 Cycling from:', current, 'to:', nextMode);
-      return nextMode;
-    });
+    const modes: Array<'none' | 'enabled' | 'simple' | 'shimmer'> = [
+      'none',
+      'enabled',
+      'simple',
+      'shimmer',
+    ];
+    const currentIndex = modes.indexOf(rainbowMode);
+    const nextMode = modes[(currentIndex + 1) % modes.length];
+    console.log('🌈 Cycling from:', rainbowMode, 'to:', nextMode);
+    setRainbowMode(nextMode);
   };
 
   useEffect(() => {

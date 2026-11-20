@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import './SplashScreen.css';
 import '../styles/imageEnhancements.css';
@@ -13,15 +13,19 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   const logoRef = useRef<HTMLImageElement>(null);
   const clickTextRef = useRef<HTMLParagraphElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const tl = gsap.timeline();
 
-    // Initial state - everything hidden and transformed
+    // Initial state - everything hidden and transformed.
+    // xPercent/yPercent must live on the GSAP transform. A CSS
+    // translate(-50%, -50%) is discarded as soon as rotation starts.
     gsap.set([backgroundRef.current, logoRef.current, clickTextRef.current], {
       opacity: 0,
       scale: 0,
       rotation: -360,
     });
+    gsap.set(logoRef.current, { xPercent: -50, yPercent: -50 });
+    gsap.set(clickTextRef.current, { xPercent: -50 });
 
     // Crazy entrance animations
     tl.to(backgroundRef.current, {
@@ -119,10 +123,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             alt="Splash Logo"
             className="splash-logo-enhanced"
           />
+          <p ref={clickTextRef} className="click-text">
+            Click to continue
+          </p>
         </div>
-        <p ref={clickTextRef} className="click-text">
-          Click to continue
-        </p>
       </div>
     </div>
   );

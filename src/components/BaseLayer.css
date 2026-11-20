@@ -6,6 +6,11 @@
   background: #000000;
 }
 
+/* Remove black background during shimmer mode */
+.base-layer.shimmer-mode {
+  background: transparent;
+}
+
 /* Disabled animated background - plain black background only
 .animated-background {
   position: absolute;
