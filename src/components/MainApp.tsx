@@ -52,7 +52,10 @@ const QuoteReveal = React.memo(function QuoteReveal({
         const charEl = document.createElement('span');
         charEl.className = 'char';
         charEl.dataset.char = char;
-        charEl.style.setProperty('--char-index', String(wordIndex * 10 + charIndex));
+        charEl.style.setProperty(
+          '--char-index',
+          String(wordIndex * 10 + charIndex),
+        );
         charEl.style.opacity = '0';
         charEl.textContent = randomGlyph();
         wordEl.appendChild(charEl);
@@ -69,7 +72,12 @@ const QuoteReveal = React.memo(function QuoteReveal({
       rotationX: 0,
       transformOrigin: 'center bottom',
     });
-    gsap.to(root, { scale: 1, rotationX: 0, duration: 0.4, ease: 'back.out(1.7)' });
+    gsap.to(root, {
+      scale: 1,
+      rotationX: 0,
+      duration: 0.4,
+      ease: 'back.out(1.7)',
+    });
     gsap.to(wordElements, {
       opacity: 1,
       y: 0,
@@ -89,7 +97,8 @@ const QuoteReveal = React.memo(function QuoteReveal({
             charEl.style.opacity = '1';
             let scrambleCount = 0;
             const maxScrambles = 6 + Math.random() * 4;
-            if (wordIndex === 0 && charIndex === 0) root.classList.add('scrambling');
+            if (wordIndex === 0 && charIndex === 0)
+              root.classList.add('scrambling');
 
             const scrambleInterval = setInterval(() => {
               if (cancelled) {
@@ -112,10 +121,15 @@ const QuoteReveal = React.memo(function QuoteReveal({
                 gsap.fromTo(
                   charEl,
                   { scale: 1.3, filter: 'brightness(1.5)' },
-                  { scale: 1, filter: 'brightness(1)', duration: 0.15, ease: 'back.out(2)' }
+                  {
+                    scale: 1,
+                    filter: 'brightness(1)',
+                    duration: 0.15,
+                    ease: 'back.out(2)',
+                  },
                 );
               }
-            }, 30);
+            }, 100);
             intervals.push(scrambleInterval);
           });
         });
@@ -132,7 +146,11 @@ const QuoteReveal = React.memo(function QuoteReveal({
   useLayoutEffect(() => {
     const root = quoteRef.current;
     if (!root) return;
-    root.classList.remove('rainbow-enabled', 'rainbow-simple', 'rainbow-shimmer');
+    root.classList.remove(
+      'rainbow-enabled',
+      'rainbow-simple',
+      'rainbow-shimmer',
+    );
     if (rainbowMode !== 'none') root.classList.add(`rainbow-${rainbowMode}`);
   }, [rainbowMode, quoteRef]);
 
@@ -262,7 +280,6 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
     };
   }, [settings]);
 
-
   const cycleRainbowMode = () => {
     console.log('🌈 Rainbow button clicked! Current mode:', rainbowMode);
     const modes: Array<'none' | 'enabled' | 'simple' | 'shimmer'> = [
@@ -295,7 +312,7 @@ const MainApp: React.FC<MainAppProps> = ({ onOpenSettings, settings }) => {
           duration: 0.8,
           ease: 'back.out(1.7)',
           delay: 0.2,
-        }
+        },
       );
     }
   }, []);
