@@ -1,5 +1,6 @@
 import React from 'react';
 import './BaseLayer.css';
+import Starfield from './Starfield';
 
 interface BaseLayerProps {
   children: React.ReactNode;
@@ -8,7 +9,7 @@ interface BaseLayerProps {
 const BaseLayer: React.FC<BaseLayerProps> = ({ children }) => {
   return (
     <div className="base-layer">
-      <div className="animated-background"></div>
+      <Starfield />
       <div className="content-overlay">{children}</div>
     </div>
   );

@@ -44,8 +44,8 @@
   bottom: 2rem;
   left: 50%;
   transform: translateX(-50%);
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   border: none;
   background: transparent; /* Ensure no background interferes with transparency */
   cursor: pointer;
@@ -72,8 +72,8 @@
 /* Desktop responsive enhancements */
 @media (min-width: 768px) {
   .jon-face-button-enhanced {
-    width: 120px;
-    height: 120px;
+    width: 180px;
+    height: 180px;
   }
 }
 
