@@ -41,7 +41,7 @@
 /* Jon Face Button Container Fixes */
 .jon-face-button-enhanced {
   position: fixed;
-  bottom: 2rem;
+  bottom: 4rem;
   left: 50%;
   transform: translateX(-50%);
   width: 120px;
@@ -107,7 +107,6 @@
   image-rendering: -webkit-optimize-contrast;
   backface-visibility: hidden;
 }
-
 
 /* Rainbow Cycle Button */
 .rainbow-button {
